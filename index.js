@@ -2,12 +2,16 @@ const express = require("express");
 
 const mongoose = require("mongoose");
 
+require("dotenv").config();
+
+const port = 6969;
+
 const app = express();
 
 app.use(express.json());
 
-mongoose.connect("mongodb+srv://krishna43835:Hm2m0TaPEm1XttaC@cluster0.iyugs.mongodb.net/server_04")
-.then(()=>console.log("MongoDB Connected"))
+mongoose.connect(process.env.MONGO_URI)
+.then(()=>console.log(`Server Successfully Connected http://localhost:${port}`))
 .catch((e)=>console.log(e))
 
 const registerSchema = new mongoose.Schema({
@@ -30,7 +34,23 @@ const registerSchema = new mongoose.Schema({
     timestamps:true,
 });
 
+const loginSchema = new mongoose.Schema({
+    userName : {
+        type: String,
+        require:true,
+        unique:true,
+        },
+    password : {
+        type: String,
+        require:true,
+    },
+},
+{
+    timestamps:true,
+});
+
 const register = mongoose.model("kaja",registerSchema);
+
 
 app.post("/register", async (req,res)=>{
     try{
@@ -50,7 +70,70 @@ let data = {
     }
 })
 
-const port = 7000;
+app.get("/getuserdata", async(req,res)=>{
+    try{
+        let getAllUSer = await register.find().sort({_id: -1});
+        if(!getAllUSer || getAllUSer.length===0){
+            return res.status(404).json({
+                message : "Data Not Found"
+            });
+        }
+        res.json({
+            data: getAllUSer
+        })
+    }catch(error){
+        res.json({
+            Error: error
+        })
+    }
+});
+
+// data get() panradhukku use panradhu
+app.get("/getuserdatabasedonage", async(req,res)=>{
+    try{
+        let {age} = req.query;
+        // let {id} = req.params;
+        let getAllUSer = await register.find({age}).sort({_id: -1});
+        if(!getAllUSer || getAllUSer.length===0){
+           return res.status(404).json({
+                message : "Data Not Found"
+            });
+        }
+        res.json({
+            data: getAllUSer
+        })
+    }catch(error){
+        res.json({
+            Error: error
+        })
+    }
+});
+
+//findById Method
+app.get("/getobject",async (req,res)=>{
+    try{
+    let {objectId} = req.query;
+    const findObject = await register.findById(objectId);
+    if(!findObject){
+        return res.status(404).json({
+            Message:"Data Not Found"
+        })
+    }
+
+    res.json({
+        data: findObject
+    })
+
+    }catch(error){
+        res.json({
+            Error: error
+        })
+    }
+    
+});
+const login = mongoose.model("login",loginSchema);
+
+
 
 // let data;
 
@@ -66,5 +149,5 @@ const port = 7000;
 // });
 
 app.listen(port,()=>{
-    console.log(`Server is Running ${port}`)
+    console.log(`Server is Running `)
 });
